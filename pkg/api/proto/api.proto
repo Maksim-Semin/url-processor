@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "pkg/api/proto";
+
+service Api {
+  rpc ChangeURL(ChangeURLMessage) returns (ChangeURLResponse);
+  rpc GetSourceURL(ChangeURLMessage) returns (ChangeURLResponse);
+}
+
+message URLInfo {
+  string URL = 1;
+}
+
+message ChangeURLMessage {
+  string URL = 1;
+}
+
+message ChangeURLResponse {
+  string URL = 1;
+}

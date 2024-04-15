@@ -1,0 +1,6 @@
+DB = "postgres"
+# postgres like RDBMS or inmemory map with mutex
+
+DBUSer = "postgres"
+DBPassword = "password"
+DBName = "Urls"

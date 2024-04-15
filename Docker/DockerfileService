@@ -1,0 +1,16 @@
+FROM golang:latest
+
+WORKDIR /app
+
+
+COPY ./go.mod /app
+COPY ./go.sum /app
+
+RUN go mod download
+
+COPY ../ ./
+
+# Собираем Go-приложение
+RUN go build -o main .
+
+CMD ["./main"]
