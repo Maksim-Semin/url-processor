@@ -30,7 +30,7 @@ func (db *InMemoryDB) Set(key, value string) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	db.Urls[key] = value
-	lg.Logger.Info("The data has been saved successfully", zap.String("key", key), zap.String("value", value))
+	lg.Logger.Info("data has been saved successfully", zap.String("key", key), zap.String("value", value))
 
 }
 

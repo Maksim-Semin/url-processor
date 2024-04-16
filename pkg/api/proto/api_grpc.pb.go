@@ -18,8 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApiClient interface {
-	ChangeURL(ctx context.Context, in *ChangeURLMessage, opts ...grpc.CallOption) (*ChangeURLResponse, error)
-	GetSourceURL(ctx context.Context, in *ChangeURLMessage, opts ...grpc.CallOption) (*ChangeURLResponse, error)
+	ChangeURL(ctx context.Context, in *URLRequest, opts ...grpc.CallOption) (*URLResponse, error)
+	GetSourceURL(ctx context.Context, in *URLRequest, opts ...grpc.CallOption) (*URLResponse, error)
 }
 
 type apiClient struct {
@@ -30,8 +30,8 @@ func NewApiClient(cc grpc.ClientConnInterface) ApiClient {
 	return &apiClient{cc}
 }
 
-func (c *apiClient) ChangeURL(ctx context.Context, in *ChangeURLMessage, opts ...grpc.CallOption) (*ChangeURLResponse, error) {
-	out := new(ChangeURLResponse)
+func (c *apiClient) ChangeURL(ctx context.Context, in *URLRequest, opts ...grpc.CallOption) (*URLResponse, error) {
+	out := new(URLResponse)
 	err := c.cc.Invoke(ctx, "/api.Api/ChangeURL", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func (c *apiClient) ChangeURL(ctx context.Context, in *ChangeURLMessage, opts ..
 	return out, nil
 }
 
-func (c *apiClient) GetSourceURL(ctx context.Context, in *ChangeURLMessage, opts ...grpc.CallOption) (*ChangeURLResponse, error) {
-	out := new(ChangeURLResponse)
+func (c *apiClient) GetSourceURL(ctx context.Context, in *URLRequest, opts ...grpc.CallOption) (*URLResponse, error) {
+	out := new(URLResponse)
 	err := c.cc.Invoke(ctx, "/api.Api/GetSourceURL", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -52,8 +52,8 @@ func (c *apiClient) GetSourceURL(ctx context.Context, in *ChangeURLMessage, opts
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
 type ApiServer interface {
-	ChangeURL(context.Context, *ChangeURLMessage) (*ChangeURLResponse, error)
-	GetSourceURL(context.Context, *ChangeURLMessage) (*ChangeURLResponse, error)
+	ChangeURL(context.Context, *URLRequest) (*URLResponse, error)
+	GetSourceURL(context.Context, *URLRequest) (*URLResponse, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -61,10 +61,10 @@ type ApiServer interface {
 type UnimplementedApiServer struct {
 }
 
-func (UnimplementedApiServer) ChangeURL(context.Context, *ChangeURLMessage) (*ChangeURLResponse, error) {
+func (UnimplementedApiServer) ChangeURL(context.Context, *URLRequest) (*URLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeURL not implemented")
 }
-func (UnimplementedApiServer) GetSourceURL(context.Context, *ChangeURLMessage) (*ChangeURLResponse, error) {
+func (UnimplementedApiServer) GetSourceURL(context.Context, *URLRequest) (*URLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSourceURL not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
@@ -81,7 +81,7 @@ func RegisterApiServer(s grpc.ServiceRegistrar, srv ApiServer) {
 }
 
 func _Api_ChangeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangeURLMessage)
+	in := new(URLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -93,13 +93,13 @@ func _Api_ChangeURL_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/api.Api/ChangeURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApiServer).ChangeURL(ctx, req.(*ChangeURLMessage))
+		return srv.(ApiServer).ChangeURL(ctx, req.(*URLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Api_GetSourceURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangeURLMessage)
+	in := new(URLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func _Api_GetSourceURL_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/api.Api/GetSourceURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApiServer).GetSourceURL(ctx, req.(*ChangeURLMessage))
+		return srv.(ApiServer).GetSourceURL(ctx, req.(*URLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

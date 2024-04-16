@@ -7,13 +7,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	pb "main/pkg/api/proto"
-	"math/rand"
 	"os"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 )
 
 func readURLsFromFile() []string {
@@ -39,104 +36,95 @@ func readURLsFromFile() []string {
 }
 
 func TestGRPCRequests(t *testing.T) {
-	var wg sync.WaitGroup
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("could not connect: %v", err)
 	}
-
 	defer conn.Close()
 
 	client := pb.NewApiClient(conn)
 	sites := readURLsFromFile()
 
-	for i := 0; i < len(sites); i++ {
-		wg.Add(1)
-		go func(i int) {
-			data := sites[i]
-			response, err := client.ChangeURL(context.Background(), &pb.ChangeURLMessage{
-				URL: data,
-			})
+	for i, site := range sites {
+		t.Run(fmt.Sprintf("TestCase%d", i), func(t *testing.T) {
+			response, err := client.ChangeURL(context.Background(), &pb.URLRequest{URL: site})
 			if err != nil {
-				t.Errorf("error calling RPC: %v", err)
-				return
+				t.Fatalf("error calling ChangeURL RPC: %v", err)
 			}
 
 			code := response.URL
 
-			newResponse, err := client.GetSourceURL(context.Background(), &pb.ChangeURLMessage{
-				URL: code,
-			})
+			newResponse, err := client.GetSourceURL(context.Background(), &pb.URLRequest{URL: code})
 			if err != nil {
-				t.Errorf("error calling RPC: %v", err)
-				return
+				t.Fatalf("error calling GetSourceURL RPC: %v", err)
 			}
-			if reflect.DeepEqual(data, newResponse.URL) {
-				fmt.Printf("testcase %d was succesfull \n", i)
-			} else {
-				fmt.Printf("testcase %d failed: expected [%v] actual [%v] \n", i, data, newResponse.URL)
-			}
-			wg.Done()
-		}(i)
-		time.Sleep(50 * time.Millisecond)
 
+			if !reflect.DeepEqual(site, newResponse.URL) {
+				t.Errorf("testcase %d failed: expected [%v] actual [%v]", i, site, newResponse.URL)
+			}
+		})
 	}
-	wg.Wait()
 }
 
 func TestGRPCRequests_1(t *testing.T) {
 	data := make(map[string]string)
-
 	var shortLinks []string
-
 	links := readURLsFromFile()
 
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("could not connect: %v", err)
 	}
-
 	defer conn.Close()
 
 	client := pb.NewApiClient(conn)
-	for i := 0; i < len(links); i++ {
-		site := links[i]
-		response, err := client.ChangeURL(context.Background(), &pb.ChangeURLMessage{
-			URL: site,
-		})
+
+	for _, site := range links {
+		response, err := client.ChangeURL(context.Background(), &pb.URLRequest{URL: site})
 		if err != nil {
-			t.Errorf("error calling RPC: %v", err)
+			t.Errorf("error calling ChangeURL RPC: %v", err)
 			return
 		}
-
 		code := response.URL
-
 		data[code] = site
 		shortLinks = append(shortLinks, code)
 	}
-	var count int
-	for len(shortLinks) != 0 {
 
-		randInd := rand.Intn(len(shortLinks))
+	for _, shortLink := range shortLinks {
+		resp, err := client.GetSourceURL(context.Background(), &pb.URLRequest{URL: shortLink})
+		if err != nil {
+			t.Errorf("error calling GetSourceURL RPC: %v", err)
+			return
+		}
+		site := resp.URL
+		expected, _ := data[shortLink]
+		if !reflect.DeepEqual(expected, site) {
+			t.Errorf("failed: expected [%v] actual [%v]", expected, site)
+		}
+	}
+}
 
-		shortLink := shortLinks[randInd]
-		resp, err := client.GetSourceURL(context.Background(), &pb.ChangeURLMessage{
-			URL: shortLink,
+func TestGRPCRequestsEmptyValue(t *testing.T) {
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("could not connect: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewApiClient(conn)
+
+	for i := 0; i < 5; i++ {
+		response, err := client.ChangeURL(context.Background(), &pb.URLRequest{
+			URL: "",
 		})
 		if err != nil {
 			t.Errorf("error calling RPC: %v", err)
 			return
 		}
-		site := resp.URL
-
-		value, _ := data[shortLink]
-		if value == site {
-			count++
-			fmt.Printf("testcase %d was succesfull \n", count)
-			shortLinks = append(shortLinks[:randInd], shortLinks[randInd+1:]...)
+		if response.URL == "" && response.Error == "field URL should not be empty" {
+			t.Logf("test %d on empty value success", i+1)
+		} else {
+			t.Errorf("test %d on empty value failed", i+1)
 		}
-		time.Sleep(50 * time.Millisecond)
-
 	}
-
 }

@@ -5,18 +5,20 @@ package api;
 option go_package = "pkg/api/proto";
 
 service Api {
-  rpc ChangeURL(ChangeURLMessage) returns (ChangeURLResponse);
-  rpc GetSourceURL(ChangeURLMessage) returns (ChangeURLResponse);
+  rpc ChangeURL(URLRequest) returns (URLResponse);
+  rpc GetSourceURL(URLRequest) returns (URLResponse);
 }
 
 message URLInfo {
   string URL = 1;
+  string Error = 2;
 }
 
-message ChangeURLMessage {
+message URLRequest {
   string URL = 1;
 }
 
-message ChangeURLResponse {
+message URLResponse {
   string URL = 1;
-}
+  string Error = 2;
+  }
