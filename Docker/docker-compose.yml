@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ../
-      dockerfile: /Docker/DockerfileService
+      dockerfile: ./Docker/DockerfileService
     ports:
       - "50051:50051"
     depends_on: [db]
